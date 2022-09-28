@@ -10,6 +10,7 @@ class Users extends Component {
     super();
     this.state = { showUsers: true };
   }
+
   toggleUsersHandler() {
     this.setState((prevState) => ({ showUsers: !prevState.showUsers }));
   }

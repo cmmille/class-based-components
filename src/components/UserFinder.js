@@ -1,36 +1,49 @@
-import { Fragment, useState, useEffect } from "react";
+import { Fragment, Component } from "react";
 import classes from "./UserFinder.module.css";
 
 import Users from "./Users";
+import UsersContext from "../store/users-context";
 
-const DUMMY_USERS = [
-  { id: "u1", name: "Max" },
-  { id: "u2", name: "Manuel" },
-  { id: "u3", name: "Julie" },
-];
+class UserFinder extends Component {
+  static contextType = UsersContext; // use this iso useContext (can only consume a single context per component)
+  constructor() {
+    super();
+    this.state = {
+      filteredUsers: [],
+      searchTerm: "",
+    };
+  }
 
-const UserFinder = () => {
-  const [filteredUsers, setFilteredUsers] = useState(DUMMY_USERS);
-  const [searchTerm, setSearchTerm] = useState("");
+  componentDidMount() {
+    //Use this iso useEffect w/ empty dependency array
+    this.setState({ filteredUsers: this.context.users }); //e.g. send http request...
+  }
 
-  useEffect(() => {
-    setFilteredUsers(
-      DUMMY_USERS.filter((user) => user.name.includes(searchTerm))
-    );
-  }, [searchTerm]);
+  componentDidUpdate(prevProps, prevState) {
+    //Use this iso useEffect w/ dependencies
+    if (prevState.searchTerm !== this.state.searchTerm) {
+      // Must check for a condition otherwise will loop infinitely (like using dependencies)
+      const filteredUsers = this.context.users.filter((user) =>
+        user.name.includes(this.state.searchTerm)
+      );
+      this.setState({ filteredUsers: filteredUsers });
+    }
+  }
 
-  const searchChangeHandler = (event) => {
-    setSearchTerm(event.target.value);
+  searchChangeHandler = (event) => {
+    this.setState({ searchTerm: event.target.value }); // setState always requires an object. React will automatically merge other object values
   };
 
-  return (
-    <Fragment>
-      <div className={classes.finder}>
-        <input type="search" onChange={searchChangeHandler} />
-      </div>
-      <Users users={filteredUsers} />
-    </Fragment>
-  );
-};
+  render() {
+    return (
+      <Fragment>
+        <div className={classes.finder}>
+          <input type="search" onChange={this.searchChangeHandler.bind(this)} />
+        </div>
+        <Users users={this.state.filteredUsers} />
+      </Fragment>
+    );
+  }
+}
 
 export default UserFinder;
